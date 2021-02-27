@@ -1,0 +1,16 @@
+Reference: https://hackr.io/blog/cpp-projects
+Introduction
+What is C++?
+How Will C++ Projects Help You?
+Top Projects to Enhance Your C++ skills
+1. Login and Registration System
+2. Car Rental System
+3. Bookshop inventory system
+4. Student Report Management System
+5. Casino Number Guessing Game
+6. Sudoku Game 
+7. Credit Card Validator
+8. Helicopter Game
+9. Using Graphics to Draw and Move Shapes
+10. Simple Animation to Race a Drunk Man from Start to Finish
+Conclusion
