@@ -44,7 +44,7 @@ std::vector<Model> generate_examples(int number)
     return models;
 }
 
-Model get_next_model(std::vector<Model> &models)
+Model& get_next_model(std::vector<Model> &models)
 {
     /*
      * sort modifys the vector
@@ -56,10 +56,10 @@ Model get_next_model(std::vector<Model> &models)
     return models[0];
 }
 
-Model get_next_model2(std::vector<Model> &models)
+Model& get_next_model2(const std::vector<Model> &models)
 {
+    //return ranges::min_element(models, compare);
     return ranges::min(models, ranges::less{}, [](const Model &x) { return x.next_event_time; });
-    
 }
 
 double timeit(int repeats, int items, std::function<void(int)> func)
@@ -88,6 +88,29 @@ void timeTwo(int items)
     get_next_model2(models);
 }
 
+void consumeOne(int items)
+{
+    auto models = generate_examples(items);
+
+    while (models[0].next_event_time != 0)
+    {
+        Model& model = get_next_model(models);
+        model.next_event_time = 0;
+    }
+}
+
+void consumeTwo(int items)
+{
+    auto models = generate_examples(items);
+    auto condition = [](const Model &model)->bool { return model.next_event_time == 0; };
+
+    while (!std::all_of(models.begin(), models.end(), condition))
+    {
+        auto model = get_next_model2(models);
+        model.next_event_time = 0;
+    }
+}
+
 int main()
 {
     /*
@@ -96,13 +119,19 @@ int main()
      * (you'll need to run a profiler later - but don't pre-optimize).
      */
 
+    const std::string MS_UNIT = "[ms]";
     int items = 1000;
     int repeats = 10000;
-    double t1 = timeit(repeats, items, timeOne);
 
-    std::cout << t1 << "[ms]"<< std::endl;
+    // std::cout << timeit(repeats, items, timeOne) << MS_UNIT << std::endl;
 
-    std::cout << timeit(repeats, items, timeTwo) << "[ms]" << std::endl;
+    // std::cout << timeit(repeats, items, timeTwo) << MS_UNIT << std::endl;
+
+    repeats = 1;
+    items = 1;
+
+    std::cout << timeit(repeats, items, consumeOne) << MS_UNIT << std::endl;
+    std::cout << timeit(repeats, items, consumeTwo) << MS_UNIT << std::endl;
 
     return 0;
 }
