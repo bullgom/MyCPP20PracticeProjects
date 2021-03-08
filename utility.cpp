@@ -1,5 +1,5 @@
 #include <iostream>
-
+#include <tuple>
 namespace utility
 {
     /*
@@ -75,12 +75,12 @@ namespace utility
 
         range_iterator<T> begin() const
         {
-            return range_iterator<T>{start_, step_};
+            return {start_, step_};
         }
 
         range_iterator<T> end() const
         {
-            return range_iterator<T>{stop_, step_};
+            return {stop_, step_};
         }
     };
 
@@ -93,7 +93,7 @@ namespace utility
     public:
         range_iterator(T init, T step) : current_{init}, step_{step} {};
 
-        range_iterator &operator++()
+        range_iterator<T> &operator++()
         {
             current_ += step_;
             return *this;
@@ -113,26 +113,102 @@ namespace utility
     template <typename T>
     range_impl<T> range(const T start, const T stop, const T step)
     {
-        return range_impl<T>(start, stop, step);
+        return {start, stop, step}; // <- 이렇게 하면 자동으로 return type으로 deduce됨
     }
 
     template <typename T>
     range_impl<T> range(const T start, const T stop)
     {
-        return range_impl<T>(start, stop);
+        return {start, stop};
     }
 
     template <typename T>
     range_impl<T> range(const T stop)
     {
-        return range_impl<T>(stop);
+        return {stop};
     }
+
+    /*
+     * pythonic enumerate iterator
+     * receives
+     *      - an iterable
+     * yields
+     *      - int, starting from 0 to len(iterator)
+     *      - any, what the iterator actually yields
+     */
+    template <typename T>
+    class enumerate_iterator;
+
+    template <typename T>
+    class enumerate_impl
+    {
+        T impl;
+
+    public:
+        enumerate_impl<T>(T impl) : impl{impl} {/* empty */};
+
+        auto begin() const
+        {
+            return enumerate_iterator{impl.begin()};
+        }
+
+        auto end() const
+        {
+            return enumerate_iterator{impl.end()};
+        }
+        /*
+         * 다른 방식
+         * auto end() const
+         * {
+         *      return enumerate_iterator<T>{impl.begin()};
+         * }
+         */
+    };
+
+    template <typename T>
+    class enumerate_iterator
+    {
+        /*
+            * enumerate_impl의 nested class로 들어가야 함
+            */
+
+        T iterator;
+        int i;
+
+    public:
+        enumerate_iterator(T iterator) : iterator{iterator}, i{0} {/* empty body */};
+
+        enumerate_iterator<T> &operator++()
+        {
+            ++i;
+            ++iterator;
+            return *this;
+        }
+
+        auto operator!=(const enumerate_iterator<T> &rhs) const
+        {
+            return iterator != rhs.iterator;
+        }
+
+        auto operator*() const
+        {
+            return std::tuple{i, *iterator};
+        }
+    };
+
+    template <typename T>
+    enumerate_impl<T> enumerate(T impl)
+    {
+        return {impl};
+    }
+
 }; // namespace utility
 
 int main()
 {
-    for (int i : utility::range(0, 10, 2))
+    // enumerate<range_impl>
+    for (auto [i, j] : utility::enumerate(utility::range(0, 100, -1)))
     {
-        std::cout << i << std::endl;
+        std::cout << i << " " << j << std::endl;
     }
 }
